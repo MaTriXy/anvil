@@ -1,18 +1,16 @@
 buildscript {
-	repositories {
-		jcenter()
-	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:1.5.0'
+		classpath 'com.android.tools.build:gradle:2.2.3'
 		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.5'
 	}
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'trikita.anvilgen'
 
 android {
-	compileSdkVersion 'android-23'
-	buildToolsVersion '23.0.2'
+	compileSdkVersion 'android-25'
+	buildToolsVersion '25.0.2'
 
 	compileOptions {
 		sourceCompatibility JavaVersion.VERSION_1_7
@@ -20,8 +18,8 @@ android {
 	}
 
 	defaultConfig {
-		minSdkVersion 10
-		targetSdkVersion 23
+		minSdkVersion 15
+		targetSdkVersion 25
 	}
 
 	lintOptions {
@@ -30,14 +28,14 @@ android {
 
 	publishNonDefault true
 	productFlavors {
-		sdk10 {
-			minSdkVersion 10
-		}
 		sdk15 {
 			minSdkVersion 15
 		}
 		sdk19 {
 			minSdkVersion 19
+		}
+		sdk21 {
+			minSdkVersion 21
 		}
 	}
 
@@ -46,20 +44,16 @@ android {
 	}
 }
 
-repositories {
-	mavenLocal()
-	jcenter()
+apply from: 'attr-quirks.gradle'
+anvilgen {
+	type = 'sdk'
+	quirks = QUIRKS
 }
 
 dependencies {
 	testCompile 'junit:junit:4.12'
-	testCompile 'org.mockito:mockito-core:2.0.36-beta'
+	testCompile 'org.mockito:mockito-core:2.0.43-beta'
 }
-
-group = 'co.trikita'
-version = '0.2.0'
-
-apply from: 'gen.gradle'
 
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
@@ -67,45 +61,51 @@ apply plugin: 'com.jfrog.bintray'
 def fixPom(pom) {
 	pom.withXml {
 		def root = asNode()
-		root.appendNode('description', 'Lightweight reactive UI library for Android')
-		root.appendNode('name', 'Anvil')
-		root.appendNode('url', 'https://github.com/zserge/anvil')
+		root.appendNode('description', POM_DESCRIPTION)
+		root.appendNode('name', POM_NAME)
+		root.appendNode('url', POM_URL)
 		def scm = root.appendNode('scm')
-		scm.appendNode('url', 'https://github.com/zserge/anvil.git')
-		scm.appendNode('connection', 'https://github.com/zserge/anvil.git')
-		scm.appendNode('developerConnection', 'https://github.com/zserge/anvil.git')
+		scm.appendNode('url', POM_SCM_URL)
+		scm.appendNode('connection', POM_SCM_CONNECTION)
+		scm.appendNode('developerConnection', POM_SCM_DEV_CONNECTION)
 		def developer = root.appendNode('developers').appendNode('developer')
-		developer.appendNode('id', 'zserge')
-		developer.appendNode('name', 'Serge Zaitsev')
-		developer.appendNode('email', 'zaitsev.serge@gmail.com')
+		developer.appendNode('id', POM_DEVELOPER_ID)
+		developer.appendNode('name', POM_DEVELOPER_NAME)
+		developer.appendNode('email', POM_DEVELOPER_EMAIL)
 		def license = root.appendNode('licenses').appendNode('license')
-		license.appendNode('name', 'MIT License')
-		license.appendNode('url', 'http://www.opensource.org/licenses/mit-license.php')
-		license.appendNode('distribution', 'repo')
+		license.appendNode('name', POM_LICENCE_NAME)
+		license.appendNode('url', POM_LICENCE_URL)
+		license.appendNode('distribution', POM_LICENCE_DIST)
 	}
 }
 
 publishing {
 	publications {
-		sdk10(MavenPublication) {
-			groupId project.group
-			version project.version
-			artifactId 'anvil-sdk10'
-			artifact "$buildDir/outputs/aar/anvil-sdk10-release.aar"
-			fixPom(pom)
-		}
 		sdk15(MavenPublication) {
 			groupId project.group
 			version project.version
-			artifactId 'anvil-sdk15'
-			artifact "$buildDir/outputs/aar/anvil-sdk15-release.aar"
+			artifactId POM_ARTIFACT_SDK15_ID
+			artifact "$buildDir/outputs/aar/$POM_ARTIFACT_SDK15_ID-release.aar"
+			artifact sourcesJar
+			artifact javadocJar
 			fixPom(pom)
 		}
 		sdk19(MavenPublication) {
 			groupId project.group
 			version project.version
-			artifactId 'anvil-sdk19'
-			artifact "$buildDir/outputs/aar/anvil-sdk19-release.aar"
+			artifactId POM_ARTIFACT_SDK19_ID
+			artifact "$buildDir/outputs/aar/$POM_ARTIFACT_SDK19_ID-release.aar"
+			artifact sourcesJar
+			artifact javadocJar
+			fixPom(pom)
+		}
+		sdk21(MavenPublication) {
+			groupId project.group
+			version project.version
+			artifactId POM_ARTIFACT_SDK21_ID
+			artifact "$buildDir/outputs/aar/$POM_ARTIFACT_SDK21_ID-release.aar"
+			artifact sourcesJar
+			artifact javadocJar
 			fixPom(pom)
 		}
 	}
@@ -114,13 +114,13 @@ publishing {
 bintray {
 	user = project.hasProperty('bintrayUser') ? bintrayUser : ''
 	key = project.hasProperty('bintrayApiKey') ? bintrayApiKey : ''
-	publications = ['sdk10', 'sdk15', 'sdk19']
+	publications = ['sdk15', 'sdk19', 'sdk21']
 	pkg {
 		repo = 'maven'
-		name = 'anvil'
-		websiteUrl = 'https://github.com/zserge/anvil'
-		vcsUrl = 'https://github.com/zserge/anvil.git'
-		licenses = ['MIT']
+		name = POM_PACKAGE_NAME
+		websiteUrl = POM_URL
+		vcsUrl = POM_SCM_URL
+		licenses = [POM_LICENCE_SHORT_NAME]
 		publish = true
 		version {
 			name = project.version
@@ -136,6 +136,26 @@ bintray {
 			}
 		}
 	}
+}
+
+task sourcesJar(type: Jar) {
+	from android.sourceSets.main.java.srcDirs
+	classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+	source = android.sourceSets.main.java.srcDirs
+	classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+artifacts {
+	archives javadocJar
+	archives sourcesJar
 }
 
 android.libraryVariants.all { variant ->

@@ -1,0 +1,26 @@
+buildscript {
+    ext.kotlin_version = '1.0.2'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib:1.0.0"
+    compile "org.jetbrains.kotlin:kotlin-reflect:1.0.2"
+
+    compile 'com.squareup:javapoet:1.7.0'
+}
